@@ -1,5 +1,5 @@
 const user = require("../users/model");
-const bcrypt = require("bcrypt");
+const bcrypt = require("bcryptjs");
 const Response = require("../../utils/response");
 const APIError = require("../../utils/errors");
 const {
@@ -74,7 +74,7 @@ const register = async (req, res) => {
     email,
     verifiedCode,
     "Hesabınızı Doğrulayın",
-    "Hesap doğrulama kodunuz:"
+    "Hesap doğrulama kodunuz: "
   );
 
   try {
@@ -159,7 +159,7 @@ const activateAccount = async (req, res) => {
   const { email } = req.user;
 
   const userInfo = await user.findOne({ email }).select("_id name lastname email mailCode");
-  if (!userInfo || isCodeExpired(userInfo.mailCode.time) || userInfo.mailCode.code !== code) {
+  if (!userInfo || isCodeExpired(userInfo.mailCode.time) || userInfo.mailCode.code != code) {
     throw new APIError(ERROR_MESSAGES.INVALID_CODE, 401);
   }
 
