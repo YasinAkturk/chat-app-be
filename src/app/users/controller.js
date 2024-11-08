@@ -1,5 +1,6 @@
 const APIError = require("../../utils/errors");
 const Response = require("../../utils/response");
+const message = require("../chat/models/message");
 const user = require("./model");
 
 const userResponse = "_id name lastname email verified";
@@ -12,19 +13,41 @@ const getAllUser = async (req, res) => {
   const allUser = await user.find({}).select(userResponse);
   return new Response(allUser).success(res);
 };
-const getAllFriend = async (req, res) => {
+const getFriendsWithLastMessage = async (req, res) => {
   try {
     const me = await user
       .findById(req.user._id)
-      .populate("friends", "name lastname email") // Yalnızca belirli alanları al
-      .exec();
+      .populate("friends", "name lastname email");
 
+    console.log("🚀 ~ getFriendsWithLastMessage ~ me:", me);
     if (!me) {
       throw new APIError("Kullanıcı bulunamadı.", 404);
     }
-    return new Response(me.friends, null).success(res);
+
+    const friendsWithLastMessage = await Promise.all(
+      me.friends.map(async (friend) => {
+        console.log("🚀 ~ friendsWithLastMessage ~ friend:", friend);
+        const lastMessage = await message
+          .findOne({
+            $or: [
+              { sender: req.user._id, receiver: friend._id },
+              { sender: friend._id, receiver: req.user._id },
+            ],
+          })
+          .sort({ createdAt: -1 }); // En son mesajı almak için tarihe göre sıralıyoruz
+
+        return {
+          name: friend.name,
+          lastname: friend.lastname,
+          lastMessage: lastMessage ? lastMessage.content : null,
+          lastMessageDate: lastMessage ? lastMessage.createdAt : null,
+        };
+      })
+    );
+
+    return new Response(friendsWithLastMessage, null).success(res);
   } catch (error) {
-    throw new APIError(null, 500);
+    throw new APIError("Arkadaşlar alınamadı", 500);
   }
 };
 
@@ -53,5 +76,5 @@ module.exports = {
   me,
   getAllUser,
   addFriendByEmail,
-  getAllFriend,
+  getFriendsWithLastMessage,
 };
