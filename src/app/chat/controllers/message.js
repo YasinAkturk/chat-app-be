@@ -1,7 +1,7 @@
 const APIError = require("../../../utils/errors");
 const Response = require("../../../utils/response");
 const Message = require("../models/message");
-const userResponse = "_id name lastname email"
+const userResponse = "_id name lastname email";
 
 const getMessageToday = async (req, res) => {
   try {
@@ -31,6 +31,25 @@ const getMessageToday = async (req, res) => {
   }
 };
 
+const getMessages = async (req, res) => {
+  const { receiverId } = req.body;
+
+  try {
+    const messages = await Message.find({
+      $or: [
+        { sender: req.user._id, receiver: receiverId },
+        { sender: receiverId, receiver: req.user._id },
+      ],
+    }).sort({ createdAt: 1 }); // Mesajları oluşturulma tarihine göre sırala
+
+    return new Response(messages, "İşlem Başarılı").created(res);
+  } catch (error) {
+    console.log("🚀 ~ getMessages ~ error:", error);
+    throw new APIError("Mesajlar Alınamadı.", 500);
+  }
+};
+
 module.exports = {
   getMessageToday,
+  getMessages
 };

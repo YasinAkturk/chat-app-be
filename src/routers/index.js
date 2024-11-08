@@ -7,11 +7,10 @@ const Response = require("../utils/response");
 const auth = require("../app/auth/router");
 const user = require("../app/users/router");
 const message = require("../app/chat/routes/message");
-const { tokenCheck, verifyUserStatus } = require("../middlewares/auth");
 
 router.use(auth);
 router.use(user);
-router.use("/message", tokenCheck, verifyUserStatus, message);
+router.use(message);
 
 router.post("/upload", function (req, res) {
   upload(req, res, function (err) {
