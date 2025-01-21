@@ -4,8 +4,10 @@ const Response = require("../../utils/response");
 const APIError = require("../../utils/errors");
 const {
   createToken,
+  generateToken,
   createTemporaryToken,
   decodedTemporaryToken,
+  verifyRefreshToken,
 } = require("../../middlewares/auth");
 const crypto = require("crypto");
 const sendEmail = require("../../utils/sendMail");
@@ -44,6 +46,19 @@ const isCodeExpired = (expiryTime) => {
   const dbTime = moment(expiryTime);
   const nowTime = moment(new Date());
   return dbTime.diff(nowTime, "minutes") <= 0;
+};
+
+// Refresh Token ile access token oluşturma
+const generateAccessToken = async (req, res) => {
+  const { refreshToken } = req.body;
+  verifyRefreshToken(refreshToken).then((data) => {
+    const payload = {
+      sub: data.sub,
+      name: data.name,
+    };
+    const accessToken = generateToken(payload, process.env.JWT_SECRET_KEY, process.env.JWT_EXPIRES_IN);
+    return new Response({ accessToken }).created(res);
+  })
 };
 
 // Giriş yapma işlemi
@@ -181,4 +196,5 @@ module.exports = {
   resetCodeCheck,
   resetPassword,
   activateAccount,
+  generateAccessToken
 };

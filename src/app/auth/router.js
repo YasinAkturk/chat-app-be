@@ -6,9 +6,12 @@ const {
   resetCodeCheck,
   resetPassword,
   activateAccount,
+  generateAccessToken,
 } = require("./controller");
 const authValidation = require("../../middlewares/validations/auth.validation");
 const { tokenCheck } = require("../../middlewares/auth");
+
+router.post("/generateAccessToken", generateAccessToken);
 
 router.post("/login", authValidation.login, login);
 

@@ -19,14 +19,13 @@ const getFriendsWithLastMessage = async (req, res) => {
       .findById(req.user._id)
       .populate("friends", "name lastname email");
 
-    console.log("🚀 ~ getFriendsWithLastMessage ~ me:", me);
+    /* console.log("🚀 ~ getFriendsWithLastMessage ~ me:", me); */
     if (!me) {
       throw new APIError("Kullanıcı bulunamadı.", 404);
     }
 
     const friendsWithLastMessage = await Promise.all(
       me.friends.map(async (friend) => {
-        console.log("🚀 ~ friendsWithLastMessage ~ friend:", friend);
         const lastMessage = await message
           .findOne({
             $or: [
@@ -37,6 +36,7 @@ const getFriendsWithLastMessage = async (req, res) => {
           .sort({ createdAt: -1 }); // En son mesajı almak için tarihe göre sıralıyoruz
 
         return {
+          id: friend._id,
           name: friend.name,
           lastname: friend.lastname,
           lastMessage: lastMessage ? lastMessage.content : null,

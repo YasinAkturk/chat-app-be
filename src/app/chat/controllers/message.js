@@ -32,7 +32,8 @@ const getMessageToday = async (req, res) => {
 };
 
 const getMessages = async (req, res) => {
-  const { receiverId } = req.body;
+  const { receiverId } = req.query;
+  console.log("🚀 ~ getMessages ~ receiverId:", receiverId)
 
   try {
     const messages = await Message.find({
